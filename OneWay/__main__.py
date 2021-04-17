@@ -186,4 +186,11 @@ while runGame:
     pygame.display.flip()
     clock.tick(60)  # Sets FPS. Set at 60.
 
+# TO DO
+
+# - Buildings
+# Pickups
+# Exit
+# Levels
+
 pygame.quit()
