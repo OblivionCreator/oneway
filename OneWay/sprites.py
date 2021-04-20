@@ -3,7 +3,7 @@ import pygame
 WHITE = (255, 255, 255)
 road_img = pygame.image.load("OneWay/img/road.png")
 road_turn_img = pygame.image.load("OneWay/img/roadc.png")
-highlight = pygame.image.load("OneWay/img/highlight.png")
+highlight = pygame.image.load("OneWay/img/highlight_2.png")
 start_des = pygame.image.load("OneWay/img/start_des.png")
 start = pygame.image.load("OneWay/img/start.png")
 
@@ -95,3 +95,22 @@ class Background(pygame.sprite.Sprite):
         self.image = pygame.image.load("OneWay/img/background.png")
         self.rect = self.image.get_rect()
         pygame.draw.rect(self.image, (0, 0, 0), [800, 600, 0, 0])
+
+class Restart(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        restart_img = pygame.image.load("OneWay/img/restart.png")
+        self.image = restart_img
+        self.rect = self.image.get_rect()
+        pygame.draw.rect(self.image, (0, 0, 0), [125, 49, 0, 0])
+
+class Building(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        restart_img = pygame.image.load("OneWay/img/buildings.png")
+        self.image = restart_img
+        self.rect = self.image.get_rect()
+        pygame.draw.rect(self.image, (0, 0, 0), [125, 49, 0, 0])
+
+    def glow(self):
+        self.image = pygame.image.load("OneWay/img/buildings_lit.png")
