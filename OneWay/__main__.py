@@ -1,8 +1,7 @@
-import random
-
 import pygame
-from sprites import *
-import pathgenerator
+from resources import *
+from resources.scripts.sprites import *
+from resources.scripts import pathgenerator
 
 pygame.init()
 
@@ -30,7 +29,6 @@ road_sprites = []
 
 def newRoad(x, y, r_t, dir):
     n_rt = playerRoad.rotation
-    print(x, y)
 
     if r_t == 0 and n_rt == 90:
         newRoad = CornerRoad(RED, 32, 32)
@@ -98,7 +96,6 @@ start.select(1)
 # Menu Game Loop
 
 def optSel(opt_sel):
-    print(opt_sel)
     if opt_sel == 0:
         puzzle.select(False)
         endless.select(False)
@@ -119,6 +116,7 @@ def optSel(opt_sel):
 
 # Main Game Loop
 
+collectedBuildings = []
 
 def init_game():
     global sprites_list, playerHighlight, playerRoad, background, restart, blocked_squares, b1, b2, building_sprites, building_squares, num1, num2, lvlDisplay, level
@@ -140,11 +138,17 @@ def init_game():
     lvlDisplay = LevelDisplay()
     lvlDisplay.rect.x, lvlDisplay.rect.y = 17, 22
 
+buildingCount = 0
+
 def clearBoard(level: int):
-    global playerHighlight, playerRoad, background, restart, blocked_squares, b1, b2, building_squares, points, lvlpoints, num1, num2, lvlDisplay
+    global playerHighlight, playerRoad, background, restart, blocked_squares, b1, b2, building_squares, points, lvlpoints, num1, num2, lvlDisplay, collectedBuildings, buildingCount
+
+    gen = pygame.image.load('OneWay/resources/img/generating.png')
+    screen.blit(gen, (200, 0))
+    pygame.display.flip()
 
     lvlpoints = 0
-
+    collectedBuildings = []
     points = 0
 
     blocked_squares = []
@@ -196,18 +200,36 @@ def clearBoard(level: int):
     path = pathgenerator.main()
 
 
-    buildingCount = (level*level)+level
-    if buildingCount > 30:
-        buildingCount = 30
+    buildingCount = 5 + (level*level)
+    if buildingCount > 45:
+        buildingCount = 45
 
-    for i in range(buildingCount):
+    buildings = []
+
+    failedAttempts = 0
+
+    while buildingCount > len(buildings):
+
         validPlacement = False
+
+        if failedAttempts > 5000:
+            break
+        else:
+            failedAttempts = 0
+
         while not validPlacement:
+
+            if failedAttempts > 5000:
+                break
+
             pos = random.choice(path)
             building = Building()
             x, y = pos
             y=y-1
-            if((x, y)) not in path:
+            if x < 0 or y < 0:
+                pass
+            elif((x, y)) not in path and ((x, y) not in buildings):
+                buildings.append((x,y))
                 x = 200+(32*x)
                 y = 32*(y)
                 newPos = (x, y)
@@ -216,12 +238,15 @@ def clearBoard(level: int):
                 building_squares.append(newPos)
                 building_sprites.append((newPos, building))
                 validPlacement = True
-
+            else:
+                failedAttempts += 1
+                print(failedAttempts)
     gen.kill()
-    print(building_squares)
+    return path
 
 
 def boundChecker(tl, br, xchange=0, ychange=0):
+    global buildingCount
     x, y = tl
     x_, y_ = br
     b1_x, b1_y = b1
@@ -238,13 +263,16 @@ def boundChecker(tl, br, xchange=0, ychange=0):
 
 def endlessGame():
 
-    global runGame
+    global runGame, collectedBuildings
 
     init_game()
 
-    clearBoard(1)
+    path = clearBoard(1)
+    level = 1
     points = 0
     lvlpoints = 0
+    genLevel = False
+    gen = Generate()
 
     while runGame:
 
@@ -287,24 +315,28 @@ def endlessGame():
                         playerRoad.moveDown(32)
                         playerHighlight.moveDown(32)
                 elif event.key == pygame.K_r or event.key == pygame.K_c:
-                    clearBoard(level=level)
+                    level = 1
+                    path = clearBoard(level=level)
 
                 if (playerRoad.rect.x, playerRoad.rect.y - 32) in building_squares:
-                    points += 100
-                    lvlpoints += 100
-                    print(building_sprites)
                     for bs in building_sprites:
                         p, b = bs
                         if (p == (playerRoad.rect.x, playerRoad.rect.y - 32)):
+                            if p not in collectedBuildings:
+                                collectedBuildings.append(p)
                             b.glow()
-                    print(points)
+
 
                 if playerRoad.rect.y == 288 and playerRoad.rect.x == 776:
-                    bonus = (level / 10) * lvlpoints
-                    points += int(bonus)
-                    print(f"Level Complete! Gained {points} points ({int(bonus)} Bonus)! (Level {level})")
-                    level += 1
-                    clearBoard(level)
+                    print(len(collectedBuildings), len(building_squares))
+                    if len(collectedBuildings) < len(building_squares):
+                        level = 1
+                        clearBoard(level)
+                    else:
+                        bonus = (level / 10) * lvlpoints
+                        points += int(bonus)
+                        level += 1
+                        clearBoard(level)
 
         screen.fill(BLACK)
 

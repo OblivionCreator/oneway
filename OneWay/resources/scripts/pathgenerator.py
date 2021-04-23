@@ -125,7 +125,7 @@ def astar(maze, start, end, allow_diagonal_movement=False):
             child.g = current_node.g + 1
             child.h = ((child.position[0] - end_node.position[0]) ** 2) + (
                         (child.position[1] - end_node.position[1]) ** 2)
-            child.f = child.g + child.h + random.randint(-800, 1800)
+            child.f = child.g + child.h + random.randint(-1800, 1800)
 
             # Child is already in the open list
             if len([open_node for open_node in open_list if
@@ -150,7 +150,7 @@ def main():
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -164,8 +164,7 @@ def main():
     end = (17, 9)
     path = []
     attempts = 0
-    while len(path) < 50:
+    while len(path) < 45:
         path = astar(maze, start, end)
         attempts += 1
-    print(attempts, path)
     return path
