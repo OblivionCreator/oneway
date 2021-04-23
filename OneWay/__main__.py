@@ -240,7 +240,6 @@ def clearBoard(level: int):
                 validPlacement = True
             else:
                 failedAttempts += 1
-                print(failedAttempts)
     gen.kill()
     return path
 
@@ -328,7 +327,6 @@ def endlessGame():
 
 
                 if playerRoad.rect.y == 288 and playerRoad.rect.x == 776:
-                    print(len(collectedBuildings), len(building_squares))
                     if len(collectedBuildings) < len(building_squares):
                         level = 1
                         clearBoard(level)
