@@ -90,6 +90,20 @@ class Start(pygame.sprite.Sprite):
             self.image = start_des
 
 
+class Misc(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.image.load("OneWay/resources/img/misc_des.png")
+        self.rect = self.image.get_rect()
+        pygame.draw.rect(self.image, (0, 0, 0), [251, 59, 0, 0])
+
+    def select(self, sel):
+        if sel == 1:
+            self.image = pygame.image.load("OneWay/resources/img/misc.png")
+        else:
+            self.image = pygame.image.load("OneWay/resources/img/misc_des.png")
+
+
 class Background(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -222,3 +236,17 @@ class LevelDisplay(pygame.sprite.Sprite):
         self.image = pygame.image.load("OneWay/resources/img/level.png")
         self.rect = self.image.get_rect()
         pygame.draw.rect(self.image, (0, 0, 0), [56, 56, 0, 0])
+
+class Par(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.image.load("OneWay/resources/img/par.png")
+        self.rect = self.image.get_rect()
+        pygame.draw.rect(self.image, (0, 0, 0), [92, 28, 0, 0])
+
+class Count(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.image.load("OneWay/resources/img/count.png")
+        self.rect = self.image.get_rect()
+        pygame.draw.rect(self.image, (0, 0, 0), [156, 28, 0, 0])

@@ -65,61 +65,12 @@ def newRoad(x, y, r_t, dir):
     road_sprites.append(newRoad)
     return newRoad
 
-
-runMenu = True
-menu = Logo()
-start = Start()
-endless = Endless()
-puzzle = Puzzle()
-start.rect.left = 45
-start.rect.top = 174
-sel1 = Selector()
-sel2 = Selector()
-
-sel1.rect.x = 45
-sel1.rect.y = 238
-sel2.rect.x = 45
-sel2.rect.y = 276
-puzzle.rect.x = 85
-puzzle.rect.y = 238
-endless.rect.x = 85
-endless.rect.y = 276
-
-sprites_list.add(menu, start, endless, puzzle, sel1, sel2)
-
-menuSel = 1
-pMenuSel = 0
-playMenu = False
-start.select(1)
-
-
-# Menu Game Loop
-
-def optSel(opt_sel):
-    if opt_sel == 0:
-        puzzle.select(False)
-        endless.select(False)
-        sel1.select(False)
-        sel2.select(False)
-    elif opt_sel == 1:
-        puzzle.select(True)
-        endless.select(False)
-        sel1.select(True)
-        sel2.select(False)
-        pMenuSel = 1
-    elif opt_sel == 2:
-        puzzle.select(False)
-        endless.select(True)
-        sel1.select(False)
-        sel2.select(True)
-        pMenuSel = 2
-
 # Main Game Loop
 
 collectedBuildings = []
 
 def init_game():
-    global sprites_list, playerHighlight, playerRoad, background, restart, blocked_squares, b1, b2, building_sprites, building_squares, num1, num2, lvlDisplay, level
+    global sprites_list, playerHighlight, playerRoad, background, restart, blocked_squares, b1, b2, building_sprites, building_squares, num1, num2, lvlDisplay, level, pnum1, pnum2, par, parSpr, countSpr, cnum1, cnum2
     sprites_list = pygame.sprite.Group()
 
     playerHighlight = Highlight()
@@ -133,15 +84,27 @@ def init_game():
     building_squares = []
     num1 = PX_Number()
     num2 = PX_Number()
+    pnum1 = PX_Number()
+    pnum2 = PX_Number()
+    cnum1 = PX_Number()
+    cnum2 = PX_Number()
+    parSpr = Par()
+    countSpr = Count()
+    countSpr.rect.x, countSpr.rect.y = 17, 445
+    parSpr.rect.x, parSpr.rect.y = 49, 341
     num1.rect.x, num1.rect.y = 33, 54
     num2.rect.x, num2.rect.y = 97, 54
+    pnum1.rect.x, pnum1.rect.y = 33, 373
+    pnum2.rect.x, pnum2.rect.y = 97, 373
+    cnum1.rect.x, cnum1.rect.y = 33, 477
+    cnum2.rect.x, cnum2.rect.y = 97, 477
     lvlDisplay = LevelDisplay()
     lvlDisplay.rect.x, lvlDisplay.rect.y = 17, 22
 
 buildingCount = 0
 
-def clearBoard(level: int):
-    global playerHighlight, playerRoad, background, restart, blocked_squares, b1, b2, building_squares, points, lvlpoints, num1, num2, lvlDisplay, collectedBuildings, buildingCount
+def clearBoard(level: int, newPath = False):
+    global playerHighlight, playerRoad, background, restart, blocked_squares, b1, b2, building_squares, points, lvlpoints, num1, num2, lvlDisplay, collectedBuildings, buildingCount, pnum1, pnum2, parSpr, countSpr, cnum1, cnum2, par
 
     gen = pygame.image.load('OneWay/resources/img/generating.png')
     screen.blit(gen, (200, 0))
@@ -165,10 +128,10 @@ def clearBoard(level: int):
 
     background.rect.x = -1
     sprites_list.add(background)
-    sprites_list.add(num1, num2, lvlDisplay)
+    sprites_list.add(num1, num2, lvlDisplay, pnum1, pnum2, parSpr, countSpr, cnum1, cnum2)
 
     restart.rect.x = 32
-    restart.rect.y = 529
+    restart.rect.y = 220
     sprites_list.add(restart)
 
     gen = Generate()
@@ -187,8 +150,6 @@ def clearBoard(level: int):
         num1.char(0)
         num2.char(int(numStr))
 
-    pygame.display.flip
-
     for i in road_sprites:
         i.kill()
 
@@ -197,8 +158,26 @@ def clearBoard(level: int):
 
     building_squares = []
 
-    path = pathgenerator.main()
+    if not newPath:
+        print(newPath)
+        path = pathgenerator.main()
+    else:
+        path = newPath
 
+    par = len(path)
+    parStr = str(par)
+
+    if par >= 99:
+        pnum1.char(9)
+        pnum2.char(9)
+    elif par >= 10:
+        pnum1.char(int(parStr[0]))
+        pnum2.char(int(parStr[1]))
+    else:
+        pnum1.char(0)
+        pnum2.char(int(parStr))
+
+    pygame.display.flip
 
     buildingCount = 5 + (level*level)
     if buildingCount > 45:
@@ -212,7 +191,7 @@ def clearBoard(level: int):
 
         validPlacement = False
 
-        if failedAttempts > 5000:
+        if failedAttempts > 50:
             break
         else:
             failedAttempts = 0
@@ -260,9 +239,9 @@ def boundChecker(tl, br, xchange=0, ychange=0):
     else:
         return True
 
-def endlessGame():
+def puzzleGame():
 
-    global runGame, collectedBuildings
+    global runGame, collectedBuildings, par, menu
 
     init_game()
 
@@ -275,6 +254,9 @@ def endlessGame():
 
     while runGame:
 
+        count = len(blocked_squares)
+        countStr = str(count)
+
         menu.kill()
 
         for event in pygame.event.get():
@@ -282,7 +264,6 @@ def endlessGame():
             if event.type == pygame.QUIT:
                 runGame = False
             elif event.type == pygame.KEYDOWN:
-
                 c_rt = playerRoad.rotation
                 # Listens for keyboard inputs
                 if event.key == pygame.K_LEFT or event.key == pygame.K_a:
@@ -330,13 +311,24 @@ def endlessGame():
                     if len(collectedBuildings) < len(building_squares):
                         level = 1
                         clearBoard(level)
+                    elif count > par:
+                        print(count, par)
+                        clearBoard(level, newPath=path)
                     else:
-                        bonus = (level / 10) * lvlpoints
-                        points += int(bonus)
                         level += 1
                         clearBoard(level)
 
         screen.fill(BLACK)
+
+        if count >= 99:
+            cnum1.char(9)
+            cnum2.char(9)
+        elif count >= 10:
+            cnum1.char(int(countStr[0]))
+            cnum2.char(int(countStr[1]))
+        else:
+            cnum1.char(0)
+            cnum2.char(int(countStr))
 
         sprites_list.update()
         sprites_list.draw(screen)
@@ -344,50 +336,114 @@ def endlessGame():
         pygame.display.flip()
         clock.tick(60)  # Sets FPS. Set at 60.
 
-while runMenu:
+def menuScreen():
 
-    screen.fill(BLACK)
+    global menu
 
-    for event in pygame.event.get():
+    def optSel(opt_sel, menuSel):
+        if menuSel == 1:
+            if opt_sel == 0:
+                puzzle.select(False)
+                endless.select(False)
+                sel1.select(False)
+                sel2.select(False)
+            elif opt_sel == 1:
+                puzzle.select(True)
+                endless.select(False)
+                sel1.select(True)
+                sel2.select(False)
+                pMenuSel = 1
+            elif opt_sel == 2:
+                puzzle.select(False)
+                endless.select(True)
+                sel1.select(False)
+                sel2.select(True)
+                pMenuSel = 2
+        elif menuSel == 2:
+            if opt_sel == 0:
+                pass
 
-        if event.type == pygame.QUIT:
-            runMenu = False
-            runGame = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                menuSel -= 1
-                if menuSel < 1:
-                    menuSel = 1
-                if menuSel == 1:
-                    start.select(1)
-                    pMenuSel = 0
-            elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                menuSel += 1
-                if menuSel > 2:
-                    menuSel = 2
-                if menuSel == 2:
-                    start.select(0)
-                optSel(0)
-            elif (event.key == pygame.K_UP or event.key == pygame.K_w) and menuSel == 1:
-                pMenuSel -= 1
-                if pMenuSel < 0:
-                    pMenuSel = 0
-                optSel(pMenuSel)
-            elif (event.key == pygame.K_DOWN or event.key == pygame.K_s) and menuSel == 1:
-                pMenuSel += 1
-                if pMenuSel > 2:
-                    pMenuSel = 2
-                optSel(pMenuSel)
-            elif event.key == pygame.K_z or event.key == pygame.K_RETURN:
-                if pMenuSel == 1:
-                    runMenu = False
-                    runGame = True
-                    endlessGame()
+    runMenu = True
+    menu = Logo()
+    endless = Endless()
 
-    sprites_list.update()
-    sprites_list.draw(screen)
-    pygame.display.flip()
-    clock.tick(60)  # Sets FPS. Set at 60.
+    start = Start()
+
+    start.rect.left = 45
+    start.rect.top = 174
+
+    misc = Misc()
+    misc.rect.x = 491
+    misc.rect.y = 174
+
+    sel1 = Selector()
+    sel2 = Selector()
+    sel1.rect.x = 45
+    sel1.rect.y = 238
+    sel2.rect.x = 45
+    sel2.rect.y = 276
+
+    puzzle = Puzzle()
+    puzzle.rect.x = 85
+    puzzle.rect.y = 238
+    endless.rect.x = 85
+    endless.rect.y = 276
+
+    sprites_list.add(menu, start, endless, puzzle, sel1, sel2, misc)
+
+    menuSel = 1
+    pMenuSel = 0
+    mMenuSel = 0
+    playMenu = False
+    start.select(1)
+
+    while runMenu:
+
+        screen.fill(BLACK)
+
+        for event in pygame.event.get():
+
+            if event.type == pygame.QUIT:
+                runMenu = False
+                runGame = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                    menuSel -= 1
+                    if menuSel < 1:
+                        menuSel = 1
+                    if menuSel == 1:
+                        start.select(1)
+                        misc.select(0)
+                        pMenuSel = 0
+                elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                    menuSel += 1
+                    if menuSel > 2:
+                        menuSel = 2
+                    if menuSel == 2:
+                        start.select(0)
+                        misc.select(1)
+                        mMenuSel = 0
+                    optSel(0, menuSel)
+                elif (event.key == pygame.K_UP or event.key == pygame.K_w) and menuSel == 1:
+                    pMenuSel -= 1
+                    if pMenuSel < 0:
+                        pMenuSel = 0
+                    optSel(pMenuSel, menuSel)
+                elif (event.key == pygame.K_DOWN or event.key == pygame.K_s) and menuSel == 1:
+                    pMenuSel += 1
+                    if pMenuSel > 2:
+                        pMenuSel = 2
+                    optSel(pMenuSel, menuSel)
+                elif event.key == pygame.K_z or event.key == pygame.K_RETURN:
+                    if pMenuSel == 1:
+                        runMenu = False
+                        runGame = True
+                        puzzleGame()
+
+        sprites_list.update()
+        sprites_list.draw(screen)
+        pygame.display.flip()
+        clock.tick(60)  # Sets FPS. Set at 60.
 
 
 # TO DO
@@ -396,5 +452,5 @@ while runMenu:
 # Pickups
 # Exit
 # Levels
-
+menuScreen()
 pygame.quit()
